@@ -123,14 +123,17 @@ if __name__ == "__main__":
     #data = pd.read_csv("your_dataset.csv")
 
     # Split the data
-    train_df, test_df = train_test_split(data, test_size=0.2, random_state=42)
+    #train_df, test_df = train_test_split(data, test_size=0.2, random_state=42)
 
+    test_size = int(len(data) * 0.2)
+    test = data[:test_size]
+    train = data[test_size:]
     # Initialize the classifier
     classifier = AITextClassifier()
     
     # Train the classifier on the training data
-    classifier.fit(train_df)
+    classifier.fit(train)
     
     # Evaluate on the test data (prediction is based on text only)
-    classifier.evaluate(test_df)
+    classifier.evaluate(test)
     #pass
