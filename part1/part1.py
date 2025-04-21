@@ -1,32 +1,31 @@
+import os
+import sys
 import pandas as pd
-from sklearn.model_selection import train_test_split
+import numpy as np
+
+# import dataloader from previous files
+sys.path.append("../dataloader")
+from dataloader import daigtv2_loader
+sys.path.append("../part1")
+
+from dataloader import daigtv2_loader
+
+#Hello
+# Set the path to your dataset folder
+data_path = "~/Desktop/ISyE4600_Machine_Learning/ISyE4600_Project/"
+
+# Load the data using the custom data loader
+data = daigtv2_loader(data_path)
+
+# inspecting the data
+print("Data shape:", data.shape)
+print(data.head())
+
+
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, accuracy_score
-# import sys
-
-# sys.path.append("../dataloader")
-# from dataloader import daigtv2_loader
-# sys.path.append("../part1")
-
-# data = daigtv2_loader("~/Desktop/ISyE4600_Machine_Learning/ISyE4600 Project/")
-
-import sys
-import os
-
-# Get absolute path to the project root
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-
-# Add dataloader directory to sys.path
-dataloader_path = os.path.join(project_root, "dataloader")
-sys.path.append(dataloader_path)
-
-# Now import the module
-from dataloader import daigtv2_loader
-
-# Load the data
-data = daigtv2_loader("~/Desktop/ISyE4600_Machine_Learning/ISyE4600 Project/")
 
 class AITextClassifier:
     """
@@ -38,7 +37,7 @@ class AITextClassifier:
     def __init__(self):
         # Define the vectorizer and models
         self.vectorizer = TfidfVectorizer(
-            token_pattern=r'\b\w+\b',
+            # token_pattern=r'\b\w+\b',
             lowercase=True
         )
         self.svm_model = SVC(kernel='linear', random_state=42)
@@ -48,21 +47,12 @@ class AITextClassifier:
     def fit(self, df: pd.DataFrame) -> None:
         """
         Fit the vectorizer and both models on the provided training DataFrame.
-        
-        Parameters:
-        - df: DataFrame containing 'text' and 'label' columns, plus any others.
-        
-        This method could optionally filter or process the data using the 
-        additional columns if needed. For example, you might remove certain rows 
-        based on 'prompt_name', 'source', or 'RDizzl3_seven'. Here, it's kept simple.
+        The DataFrame should contain 'text' and 'label' columns.
         """
-        # Example: potential filtering or data preparation using extra columns
-        # df = df[df["source"] != "some_source_to_exclude"]  # if you had such a condition
-
         X = df["text"]
         y = df["label"]
 
-        # Transform text to TF-IDF features
+        # Transform text to TF–IDF features
         X_tfidf = self.vectorizer.fit_transform(X)
 
         # Train the SVM model
@@ -76,7 +66,6 @@ class AITextClassifier:
     def predict_svm(self, texts) -> pd.Series:
         """
         Predict labels for a list of texts using the trained SVM model.
-        Only the text is used for the prediction.
         """
         if not self.is_fitted:
             raise ValueError("Model has not been fitted yet.")
@@ -86,7 +75,6 @@ class AITextClassifier:
     def predict_rf(self, texts) -> pd.Series:
         """
         Predict labels for a list of texts using the trained Random Forest model.
-        Only the text is used for the prediction.
         """
         if not self.is_fitted:
             raise ValueError("Model has not been fitted yet.")
@@ -96,8 +84,7 @@ class AITextClassifier:
     def evaluate(self, df: pd.DataFrame) -> None:
         """
         Evaluate both models on a DataFrame containing 'text' and 'label'.
-        Predictions are made using text only, but the method compares 
-        the predictions with the actual labels in df['label'].
+        Predictions are made using the text only, then compared to the actual labels.
         """
         X = df["text"]
         y_true = df["label"]
@@ -115,25 +102,121 @@ class AITextClassifier:
         print("Accuracy:", accuracy_score(y_true, rf_preds))
         print(classification_report(y_true, rf_preds))
 
+# Split the data: use 20% to 40% of the data as test data
+total_len = len(data)
+start = int(total_len * 0.2)
+end = int(total_len * 0.4)
+test = data.iloc[start:end]
+train = pd.concat([data.iloc[:start], data.iloc[end:]])
 
-# Example usage
+# Initialize the classifier and train on the training data
+classifier = AITextClassifier()
+classifier.fit(train)
+
+# Evaluate both the SVM and Random Forest models on the test data
+classifier.evaluate(test)
+
+from sklearn.tree import plot_tree
+import matplotlib.pyplot as plt
+
+class TreeVisualizer:
+    def __init__(self, classifier):
+        self.classifier = classifier
+        self.model = classifier.rf_model
+        self.vectorizer = classifier.vectorizer
+
+    def plot_tree_from_forest(self, tree_index=0, class_names=None, max_features=50):
+        """
+        Visualize one decision tree from the random forest.
+
+        Parameters:
+        - tree_index: Index of the tree in the forest to visualize.
+        - class_names: List of class names (e.g., ["Spam", "Not Spam"]).
+        - max_features: Limit the number of feature names to plot for readability.
+        """
+        if tree_index >= len(self.model.estimators_):
+            raise IndexError(f"Tree index {tree_index} out of range.")
+
+        estimator = self.model.estimators_[tree_index]
+        feature_names = self.vectorizer.get_feature_names_out()
+
+        # if max_features and len(feature_names) > max_features:
+        #     print(f"⚠️ Feature space is large ({len(feature_names)}). Showing only the first {max_features} features.")
+        #     feature_names = feature_names[:max_features]
+        feature_names = self.vectorizer.get_feature_names_out()
+
+        plt.figure(figsize=(20, 10))
+        plot_tree(
+            estimator,
+            filled=True,
+            feature_names=feature_names,
+            class_names=class_names or ["Human", "AI"],
+            fontsize=8
+        )
+        plt.title(f"Random Forest Decision Tree Visualization (Estimator {tree_index})")
+        plt.show()
+
+visualizer = TreeVisualizer(classifier)
+visualizer.plot_tree_from_forest(tree_index=0, class_names=["Human", "AI"])
+
+# with a better visualization
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+
+class TFIDFTreeVisualizer:
+    def __init__(self, max_features=1000, max_depth=3, min_samples_leaf=10):
+        self.vectorizer = TfidfVectorizer(max_features=max_features, stop_words="english")
+        self.model = DecisionTreeClassifier(
+            random_state=42,
+            max_depth=max_depth,
+            min_samples_leaf=min_samples_leaf
+        )
+        self.feature_names = None
+
+    def fit(self, texts, labels):
+        """
+        Fit the TF-IDF vectorizer and decision tree model.
+        """
+        X = self.vectorizer.fit_transform(texts)
+        self.model.fit(X, labels)
+        self.feature_names = self.vectorizer.get_feature_names_out()
+
+    def plot(self, class_names=["Class 0", "Class 1"], figsize=(18, 8), title="CART Tree Visualization"):
+        """
+        Plot the trained decision tree with readable layout.
+        """
+        if self.feature_names is None:
+            raise ValueError("Model has not been fitted. Call `fit()` first.")
+
+        plt.figure(figsize=figsize)
+        plot_tree(
+            self.model,
+            filled=True,
+            feature_names=self.feature_names,
+            class_names=class_names,
+            max_depth=self.model.get_depth(),
+            fontsize=10,
+            impurity=False,
+            proportion=True
+        )
+        plt.title(title)
+        plt.show()
+
+
 if __name__ == "__main__":
-    # Suppose 'data' is your complete DataFrame with columns:
-    # ['text', 'label', 'prompt_name', 'source', 'RDizzl3_seven']
-    #data = pd.read_csv("your_dataset.csv")
+    # Example usage
+    visualizer = TFIDFTreeVisualizer(
+        max_features=1000,
+        max_depth=3,
+        min_samples_leaf=10
+    )
 
-    # Split the data
-    #train_df, test_df = train_test_split(data, test_size=0.2, random_state=42)
+    # Fit with training data
+    visualizer.fit(train["text"], train["label"])
 
-    test_size = int(len(data) * 0.2)
-    test = data[:test_size]
-    train = data[test_size:]
-    # Initialize the classifier
-    classifier = AITextClassifier()
-    
-    # Train the classifier on the training data
-    classifier.fit(train)
-    
-    # Evaluate on the test data (prediction is based on text only)
-    classifier.evaluate(test)
-    #pass
+    # Plot the tree
+    visualizer.plot(class_names=["Human written", "AI written"])
+
