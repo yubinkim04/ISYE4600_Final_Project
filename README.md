@@ -6,8 +6,11 @@ you first need to download the data from the following link
  
 dataloader: loads the date from kaggle.
 
-part1: training with SVM and Random Forest models after TF-IDF vectorization
+part1: training with SVM and Random Forest models after TF-IDF vectorization.
+- estimated running time: 15m
 
-part2:
-
-part3:
+part2: training with LSTM with FastText vectorization.
+- estimated running time: 30m
+  
+part3: BERT(Transformer) with Catboost vectorization.
+- estimated running time:1h
