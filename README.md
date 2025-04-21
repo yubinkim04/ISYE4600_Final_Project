@@ -9,7 +9,7 @@ dataloader: loads the date from kaggle.
 part1: training with SVM and Random Forest models after TF-IDF vectorization.
 - estimated running time: 15m
 
-part2: training with LSTM with FastText vectorization.
+part2: training with LSTM with FastText vectorization. Download wiki-news-300d-1M.vec from this link: https://fasttext.cc/docs/en/english-vectors.html and put in the parent directly of the cloned directory to run part2 from scratch.
 - estimated running time: 30m
   
 part3: BERT(Transformer) with Catboost vectorization.
