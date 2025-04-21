@@ -13,5 +13,5 @@ Part 2: training with LSTM with FastText vectorization. Download wiki-news-300d-
 - estimated running time of p2.ipynb: 30m with GPU usage
 - To load the pretrained model weights and test new phrases, edit and run part2.py. FYI, the model cannot make effective predictions for phrases that are too short.
   
-Part 3: BERT(Transformer) with Catboost vectorization.
+Part 3: BERT(Transformer) with Catboost.
 - estimated running time: 1h with GPU usage
