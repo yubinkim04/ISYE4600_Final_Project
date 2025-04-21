@@ -4,7 +4,7 @@ NLP Overview: AI text detection
 You first need to download the data from the following link and put it in the parent directly of the cloned directory.
  https://www.kaggle.com/datasets/thedrcat/daigt-v2-train-dataset/data?select=train_v2_drcat_02.csv
 
-Also, make sure all the required libraries in requirements.txt are downloaded to your local environment.
+Also, make sure the Python version is 3.9 and all the required libraries in requirements.txt are downloaded to your local environment. The correct version of TensorFlow will not download if the Python version is past 3.10.
  
 dataloader: loads the data from Kaggle.
 
