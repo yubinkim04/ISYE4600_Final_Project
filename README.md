@@ -3,6 +3,8 @@ NLP Overview: AI text detection
 
 You first need to download the data from the following link and put it in the parent directly of the cloned directory.
  https://www.kaggle.com/datasets/thedrcat/daigt-v2-train-dataset/data?select=train_v2_drcat_02.csv
+
+Also, make sure all the required libraries in requirements.txt are downloaded to your local environment.
  
 dataloader: loads the data from Kaggle.
 
